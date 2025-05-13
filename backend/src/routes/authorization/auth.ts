@@ -4,6 +4,8 @@ import bcrypt from 'bcrypt'
 import { signupMiddleware } from '../../middleware/authorization/signup'
 import { PrismaClient } from '../../generated/prisma'
 import { HttpResponse } from '../../constants/ResponseEnums'
+import { loginMiddleware } from '../../middleware/authorization/login'
+import { LoginInput } from '../../types/zod'
 
 const router = express.Router()
 
@@ -14,7 +16,11 @@ const message = 'Internal server error'
 router.post('/signup', signupMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.signupPayload) {
-      throw new Error("Missing signupPayload in request");
+      res.status(HttpResponse.BAD_REQUEST).json({
+        success: false,
+        msg: 'Missing signup payload'
+      })
+      return
     }
     
     const { firstName, lastName, email, password } = req.signupPayload
@@ -47,13 +53,60 @@ router.post('/signup', signupMiddleware, async (req: Request, res: Response) => 
       newUser
     })
   } catch(err) {
-    if (err instanceof Error) {
-      console.error(err.message)
-    }
-
     res.status(HttpResponse.INTERNAL_ERROR).json({
       success: false,
-      msg: message
+      msg: err instanceof Error ? err.message : message
+    })
+  } finally {
+    await prisma.$disconnect()
+  }
+})
+
+router.post('/login', loginMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.parsedLoginPayload) {
+      res.status(HttpResponse.BAD_REQUEST).json({
+        success: false,
+        msg: 'Login credentials not provided'
+      })
+      return
+    }
+
+    const { email, password }: LoginInput = req.parsedLoginPayload
+    const user = await prisma.users.findUnique({
+      where: { email },
+      select: { email: true, password: true }
+    })
+
+    const error_message = 'Invalid username or password'
+    
+    if (!user) {
+      res.status(HttpResponse.UNAUTHORIZED).json({
+        success: false,
+        msg: error_message
+      })
+      return
+    }
+    
+    const checkPassword = await bcrypt.compare(password, user.password)
+
+    if (!checkPassword) {
+      res.status(HttpResponse.UNAUTHORIZED).json({
+        success: false,
+        msg: error_message
+      })
+      return
+    }
+
+    res.status(HttpResponse.OK).json({
+      success: true,
+      msg: 'Login successfull',
+      user
+    })
+  } catch(err) {
+    res.status(HttpResponse.INTERNAL_ERROR).json({
+      success: false,
+      msg: err instanceof Error ? err.message : message
     })
   } finally {
     await prisma.$disconnect()

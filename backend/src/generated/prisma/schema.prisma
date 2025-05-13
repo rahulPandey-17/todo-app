@@ -20,6 +20,7 @@ model Users {
   lastName  String?
   email     String  @unique
   password  String
+  todos     Todo[]
 }
 
 model Todo {
@@ -27,4 +28,6 @@ model Todo {
   title       String  @unique
   description String?
   done        Boolean @default(false)
+  user_id     Int
+  user        Users   @relation(fields: [user_id], references: [id])
 }

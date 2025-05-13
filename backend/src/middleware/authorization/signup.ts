@@ -10,13 +10,9 @@ export function signupMiddleware(req: Request, res: Response, next: NextFunction
     const parsedPayload = signupSchema.safeParse(payload)
     req.signupPayload = parsedPayload.data
   } catch (err) {
-    if (err instanceof Error) {
-      console.error(err.message)
-    }
-
     res.status(HttpResponse.BAD_REQUEST).json({
       success: false,
-      msg: 'Invalid inputs'
+      msg: err instanceof Error ? err.message : 'Invalid inputs'
     })
   }
 }

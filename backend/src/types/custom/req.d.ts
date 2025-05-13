@@ -1,9 +1,10 @@
-import { SignupInput } from '../zod'
+import { LoginInput, SignupInput } from '../zod'
 
 declare global {
   namespace Express {
   interface Request {
-    signupPayload?: SignupInput
+    signupPayload?: SignupInput,
+    parsedLoginPayload?: LoginInput
   }
 }
 }
