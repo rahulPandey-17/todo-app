@@ -1,0 +1,63 @@
+import express, { Request, Response } from 'express'
+import bcrypt from 'bcrypt'
+
+import { signupMiddleware } from '../../middleware/authorization/signup'
+import { PrismaClient } from '../../generated/prisma'
+import { HttpResponse } from '../../constants/ResponseEnums'
+
+const router = express.Router()
+
+const prisma = new PrismaClient()
+
+const message = 'Internal server error'
+
+router.post('/signup', signupMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.signupPayload) {
+      throw new Error("Missing signupPayload in request");
+    }
+    
+    const { firstName, lastName, email, password } = req.signupPayload
+    const userExists = await prisma.users.findUnique({
+      where: { email }
+    })
+
+    if (userExists) {
+      res.status(HttpResponse.CONFLICT).json({
+        success: false,
+        msg: 'User with this email already exists'
+      })
+      return
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const newUser = await prisma.users.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword
+      }
+    })
+
+    res.status(HttpResponse.CREATED).json({
+      success: true,
+      msg: 'User created successfully',
+      newUser
+    })
+  } catch(err) {
+    if (err instanceof Error) {
+      console.error(err.message)
+    }
+
+    res.status(HttpResponse.INTERNAL_ERROR).json({
+      success: false,
+      msg: message
+    })
+  } finally {
+    await prisma.$disconnect()
+  }
+})
+
+export default router
