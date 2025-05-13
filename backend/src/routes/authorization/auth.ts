@@ -1,5 +1,7 @@
-import express, { Request, Response } from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv'
 
 import { signupMiddleware } from '../../middleware/authorization/signup'
 import { PrismaClient } from '../../generated/prisma'
@@ -8,6 +10,8 @@ import { loginMiddleware } from '../../middleware/authorization/login'
 import { LoginInput } from '../../types/zod'
 
 const router = express.Router()
+
+dotenv.config()
 
 const prisma = new PrismaClient()
 
@@ -38,7 +42,7 @@ router.post('/signup', signupMiddleware, async (req: Request, res: Response) => 
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const newUser = await prisma.users.create({
+    await prisma.users.create({
       data: {
         firstName,
         lastName,
@@ -49,16 +53,13 @@ router.post('/signup', signupMiddleware, async (req: Request, res: Response) => 
 
     res.status(HttpResponse.CREATED).json({
       success: true,
-      msg: 'User created successfully',
-      newUser
+      msg: 'User created successfully'
     })
   } catch(err) {
     res.status(HttpResponse.INTERNAL_ERROR).json({
       success: false,
       msg: err instanceof Error ? err.message : message
     })
-  } finally {
-    await prisma.$disconnect()
   }
 })
 
@@ -73,9 +74,10 @@ router.post('/login', loginMiddleware, async (req: Request, res: Response) => {
     }
 
     const { email, password }: LoginInput = req.parsedLoginPayload
+    const normalizedEmail = email.trim().toLowerCase()
     const user = await prisma.users.findUnique({
-      where: { email },
-      select: { email: true, password: true }
+      where: { email: normalizedEmail },
+      select: { email: true, password: true, id: true }
     })
 
     const error_message = 'Invalid username or password'
@@ -98,19 +100,42 @@ router.post('/login', loginMiddleware, async (req: Request, res: Response) => {
       return
     }
 
+    const id = user.id
+    if (!process.env.JWT_KEY) {
+      res.status(HttpResponse.BAD_REQUEST).json({
+        success: false,
+        msg: 'JWT secret key not provided'
+      })
+      return
+    }
+    const token = jwt.sign({ id, email }, process.env.JWT_KEY, { expiresIn: '1h' })
+
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60,
+      secure: true
+    })
+
     res.status(HttpResponse.OK).json({
       success: true,
       msg: 'Login successfull',
-      user
+      token
     })
   } catch(err) {
     res.status(HttpResponse.INTERNAL_ERROR).json({
       success: false,
       msg: err instanceof Error ? err.message : message
     })
-  } finally {
-    await prisma.$disconnect()
   }
+})
+
+
+router.use((req: Request, res: Response) => {
+  res.status(HttpResponse.NOT_FOUND).json({
+    success: false,
+    msg: 'Route not found'
+  })
 })
 
 export default router

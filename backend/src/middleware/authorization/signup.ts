@@ -9,6 +9,7 @@ export function signupMiddleware(req: Request, res: Response, next: NextFunction
   try {
     const parsedPayload = signupSchema.safeParse(payload)
     req.signupPayload = parsedPayload.data
+    next()
   } catch (err) {
     res.status(HttpResponse.BAD_REQUEST).json({
       success: false,
