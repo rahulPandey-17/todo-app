@@ -7,7 +7,7 @@ import { signupMiddleware } from '../../middleware/authorization/signup'
 import { PrismaClient } from '../../generated/prisma'
 import { HttpResponse } from '../../constants/ResponseEnums'
 import { loginMiddleware } from '../../middleware/authorization/login'
-import { LoginInput } from '../../types/zod'
+import { LoginInput, SignupInput } from '../../types/zod'
 
 const router = express.Router()
 
@@ -19,15 +19,7 @@ const message = 'Internal server error'
 
 router.post('/signup', signupMiddleware, async (req: Request, res: Response) => {
   try {
-    if (!req.signupPayload) {
-      res.status(HttpResponse.BAD_REQUEST).json({
-        success: false,
-        msg: 'Missing signup payload'
-      })
-      return
-    }
-    
-    const { firstName, lastName, email, password } = req.signupPayload
+    const { firstName, lastName, email, password } = req.signupPayload as SignupInput
     const userExists = await prisma.users.findUnique({
       where: { email }
     })
@@ -65,15 +57,7 @@ router.post('/signup', signupMiddleware, async (req: Request, res: Response) => 
 
 router.post('/login', loginMiddleware, async (req: Request, res: Response) => {
   try {
-    if (!req.parsedLoginPayload) {
-      res.status(HttpResponse.BAD_REQUEST).json({
-        success: false,
-        msg: 'Login credentials not provided'
-      })
-      return
-    }
-
-    const { email, password }: LoginInput = req.parsedLoginPayload
+    const { email, password } = req.parsedLoginPayload as LoginInput
     const normalizedEmail = email.trim().toLowerCase()
     const user = await prisma.users.findUnique({
       where: { email: normalizedEmail },
@@ -101,14 +85,7 @@ router.post('/login', loginMiddleware, async (req: Request, res: Response) => {
     }
 
     const id = user.id
-    if (!process.env.JWT_KEY) {
-      res.status(HttpResponse.BAD_REQUEST).json({
-        success: false,
-        msg: 'JWT secret key not provided'
-      })
-      return
-    }
-    const token = jwt.sign({ id, email }, process.env.JWT_KEY, { expiresIn: '1h' })
+    const token = jwt.sign({ id, email }, process.env.JWT_KEY as string, { expiresIn: '1h' })
 
     res.cookie('jwt', token, {
       httpOnly: true,
