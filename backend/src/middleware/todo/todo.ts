@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 
-import { LoginInput, loginSchema } from '../../types/zod'
+import { todoSchema, TodoInput } from '../../types/zod'
 import { HttpResponse } from '../../constants/ResponseEnums'
 
-export function loginMiddleware(req: Request, res: Response, next: NextFunction) {
+export function todoMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.body) {
     res.status(HttpResponse.BAD_REQUEST).json({
       success: false,
@@ -11,18 +11,18 @@ export function loginMiddleware(req: Request, res: Response, next: NextFunction)
     })
     return
   }
-  
-  const payload: LoginInput = req.body
-  const parsedPayload = loginSchema.safeParse(payload)
+
+  const payload: TodoInput = req.body
+  const parsedPayload = todoSchema.safeParse(payload)
 
   if (!parsedPayload.success) {
     res.status(HttpResponse.BAD_REQUEST).json({
       success: false,
-      msg: parsedPayload.error?.flatten().fieldErrors
+      msg: parsedPayload.error.flatten().fieldErrors
     })
     return
   }
-
-  req.parsedLoginPayload = parsedPayload.data
+  
+  req.todoPayload = parsedPayload.data
   next()
 }
