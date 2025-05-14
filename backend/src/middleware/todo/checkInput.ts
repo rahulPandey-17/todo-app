@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express'
 import { todoSchema, TodoInput } from '../../types/zod'
 import { HttpResponse } from '../../constants/ResponseEnums'
 
-export function todoMiddleware(req: Request, res: Response, next: NextFunction) {
+export function checkInput(req: Request, res: Response, next: NextFunction) {
   if (!req.body) {
     res.status(HttpResponse.BAD_REQUEST).json({
       success: false,

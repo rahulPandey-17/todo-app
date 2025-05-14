@@ -5,7 +5,9 @@ declare global {
   interface Request {
     signupPayload?: SignupInput,
     parsedLoginPayload?: LoginInput,
-    todoPayload?: TodoInput
+    todoPayload?: TodoInput,
+    userId?: string,
+    userEmail?: string
   }
 }
 }
