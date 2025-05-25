@@ -59,12 +59,13 @@ router.put('/completed', idValidation, async (req, res) => {
     const userId = mongoose.Types.ObjectId.createFromHexString(req.validatedIdInput)
     const updatedTodo = await Todo.findOneAndUpdate(
       { _id: userId },
-      { completed: true }
+      { completed: true },
     )
 
     res.status(200).json({
       success: true,
-      msg: 'Todo updated successfully'
+      msg: 'Todo updated successfully',
+      updatedTodo
     })
   } catch(err) {
     console.log(err)
