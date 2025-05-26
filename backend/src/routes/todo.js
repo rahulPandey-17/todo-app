@@ -60,6 +60,7 @@ router.put('/completed', idValidation, async (req, res) => {
     const updatedTodo = await Todo.findOneAndUpdate(
       { _id: userId },
       { completed: true },
+      { new: true }
     )
 
     res.status(200).json({

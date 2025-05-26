@@ -6,7 +6,7 @@ const todoSchema = z.object({
 })
 
 const idSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]+$/)
+  id: z.string()
 })
 
 module.exports = {
