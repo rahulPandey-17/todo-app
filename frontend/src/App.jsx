@@ -13,7 +13,7 @@ function App() {
 
   return (
     <div className='dark: bg-gray-900 min-h-screen text-white px-3 py-5'>
-      <TodoForm></TodoForm>
+      <TodoForm setTodos={setTodos} todos={todos}></TodoForm>
       <RenderTodos todos={todos}></RenderTodos>
     </div>
   )

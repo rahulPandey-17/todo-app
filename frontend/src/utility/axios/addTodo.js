@@ -11,5 +11,6 @@ export default async function addTodo(title, description) {
       'Content-type': 'application/json'
     }
   })
+  return res.data
   console.log('Todo added successfully:', res.data.todo)
 }

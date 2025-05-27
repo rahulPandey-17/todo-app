@@ -3,11 +3,13 @@ import RenderTodoWrapper from '../wrapper_components/RenderTodoWrapper'
 
 export default function RenderTodos({ todos }) {
   return (
-    <div>
+    <div className='flex flex-wrap gap-20'>
       {
         todos.map((todo, index) => {
           return (
-            <RenderTodoWrapper key={index}>
+            <RenderTodoWrapper key={index}
+              className='flex w-full justify-between'
+            >
               <h3> {todo.title} </h3>
               <h3> {todo.description} </h3>
               <button

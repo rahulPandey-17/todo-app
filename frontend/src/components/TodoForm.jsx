@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import addTodo from '../utility/axios/addTodo'
 
-export default function TodoForm() {
+export default function TodoForm({ setTodos, todos }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
@@ -10,7 +10,8 @@ export default function TodoForm() {
     e.preventDefault()
 
     try {
-      await addTodo(title, description)
+      const newTodo = await addTodo(title, description)
+      setTodos([newTodo, ...todos])
       setTitle('')
       setDescription('')
       alert('Todo added!')
