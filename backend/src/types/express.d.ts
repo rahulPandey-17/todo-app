@@ -4,7 +4,10 @@ declare global {
   namespace Express {
     interface Request {
       id?: string,
-      validatedTodo?: TodoInput
+      validatedTodo?: TodoInput,
+      validatedId?: string,
+      validatedTitle?: string,
+      validatedDescription?: string
     }
   }
 }

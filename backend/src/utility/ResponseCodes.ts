@@ -1,4 +1,4 @@
-enum ResposeCodes {
+enum ResponseCodes {
   OK = 200,
   CREATED = 201,
   CONFLICT = 409,
@@ -6,4 +6,4 @@ enum ResposeCodes {
   INTERNAL_ERROR = 500
 }
 
-export default ResposeCodes
+export default ResponseCodes
