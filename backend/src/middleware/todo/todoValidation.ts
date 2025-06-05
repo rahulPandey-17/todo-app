@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import { checkReqBody } from '../utility/checkReqBody'
-import { TodoInput, todoSchema } from '../types/zodSchema'
-import ResponseCodes from '../utility/ResponseCodes'
+import { checkReqBody } from '../../utility/checkReqBody'
+import { TodoInput, todoSchema } from '../../types/zodSchema'
+import ResponseCodes from '../../utility/ResponseCodes'
 
 
 export function todoValidation(req: Request, res: Response, next: NextFunction) {

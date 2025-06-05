@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import { titleSchema } from '../types/zodSchema'
-import { checkReqBody } from '../utility/checkReqBody'
-import ResponseCodes from '../utility/ResponseCodes'
+import { titleSchema } from '../../types/zodSchema'
+import { checkReqBody } from '../../utility/checkReqBody'
+import ResponseCodes from '../../utility/ResponseCodes'
 
 export function titleValidation(req: Request, res: Response, next: NextFunction) {
   checkReqBody(req, res)

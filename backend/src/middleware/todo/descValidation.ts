@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import { descriptionSchema } from '../types/zodSchema'
-import { checkReqBody } from '../utility/checkReqBody'
-import ResponseCodes from '../utility/ResponseCodes'
+import { descriptionSchema } from '../../types/zodSchema'
+import { checkReqBody } from '../../utility/checkReqBody'
+import ResponseCodes from '../../utility/ResponseCodes'
 
 export function descValidation(req: Request, res: Response, next: NextFunction) {
   checkReqBody(req, res)

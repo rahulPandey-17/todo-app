@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import { idSchema } from '../types/zodSchema'
-import { checkReqParam } from '../utility/checkReqParam'
-import ResponseCodes from '../utility/ResponseCodes'
+import { idSchema } from '../../types/zodSchema'
+import { checkReqParam } from '../../utility/checkReqParam'
+import ResponseCodes from '../../utility/ResponseCodes'
 
 export function idValidation(req: Request, res: Response, next: NextFunction) {
   checkReqParam(req, res)

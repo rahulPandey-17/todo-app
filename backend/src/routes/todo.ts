@@ -2,30 +2,46 @@ import express, { Request, Response } from 'express'
 import mongoose from 'mongoose'
 const { MongoServerError } = mongoose.mongo
 
-import { todoValidation } from '../middleware/todoValidation'
-import { Todo } from '../database'
+import { todoValidation } from '../middleware/todo/todoValidation'
+import { Todo, User } from '../database'
 import { successResponse } from '../utility/successResponse'
 import ResponseCodes from '../utility/ResponseCodes'
 import { errorResponse } from '../utility/errorResponse'
-import { idValidation } from '../middleware/idValidation'
-import { titleValidation } from '../middleware/titleValidation'
-import { descValidation } from '../middleware/descValidation'
+import { idValidation } from '../middleware/todo/idValidation'
+import { titleValidation } from '../middleware/todo/titleValidation'
+import { descValidation } from '../middleware/todo/descValidation'
+import { tokenValidation } from '../middleware/jwt/tokenValidation'
 
 const router = express.Router()
 
 // create todo
-router.post('/create', todoValidation, async (req: Request, res: Response) => {
+router.post('/create', tokenValidation, todoValidation, async (req: Request, res: Response) => {
   try {
     const { title, description } = req.validatedTodo!
-    const newTodo = await Todo.create({
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    // creating a todo
+    const todo = await Todo.create([{
       title,
       description
-    })
+    }], { session })
+
+    // pushing the object id into user collection
+    const userId = req.decodedJwt._id as string
+    await User.findOneAndUpdate(
+      { _id: userId },
+      { $push: { todos: todo[0]._id } },
+      { session }
+    )
+
+    await session.commitTransaction()
+    session.endSession()
 
     successResponse(
       res,
       'Todo created successfully',
-      { todo: newTodo },
+      { todo: todo[0] },
       {
         timestamp: new Date().toISOString(),
         requestId: req.id
@@ -50,14 +66,18 @@ router.post('/create', todoValidation, async (req: Request, res: Response) => {
 })
 
 // retrieve todo's
-router.get('/todos', async (req: Request, res: Response) => {
+router.get('/todos', tokenValidation, async (req: Request, res: Response) => {
   try {
-    const allTodos = await Todo.find({})
+    const userId = req.decodedJwt._id as string
+    const user = await User.findById(userId).populate({
+      path: 'todos',
+      select: 'title description -_id'
+    }).orFail()
 
     successResponse(
       res,
-      'Todo\'s retrieved successfully',
-      { todos: allTodos },
+      'Todo\'s fetched successfully',
+      { todos: user.todos },
       {
         timestamp: new Date().toISOString(),
         requestId: req.id

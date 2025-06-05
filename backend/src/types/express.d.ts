@@ -1,3 +1,4 @@
+import Decoded from './jwt'
 import { LoginInput, TodoInput, UserInput } from './zodSchema'
 
 declare global {
@@ -9,7 +10,8 @@ declare global {
       validatedTitle?: string,
       validatedDescription?: string,
       validatedUserInput?: UserInput,
-      validatedLoginInput?: LoginInput
+      validatedLoginInput?: LoginInput,
+      decodedJwt?: Decoded
     }
   }
 }

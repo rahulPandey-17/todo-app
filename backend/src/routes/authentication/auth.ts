@@ -87,8 +87,8 @@ router.post('/login', loginValidation, async (req: Request, res: Response) => {
     // issuing token
     const key = env.JWT_KEY
     checkJWTKey(req, res)
-    const { firstName, lastName } = user
-    const token = jwt.sign({firstName, lastName, email}, key, { expiresIn: '1d' })
+    const { firstName, lastName, _id } = user
+    const token = jwt.sign({ _id, firstName, lastName, email}, key, { expiresIn: '1d' })
 
     res.cookie('token', token, {
       httpOnly: true,
