@@ -19,8 +19,29 @@ const todoSchema = new Schema({
   timestamps: true
 })
 
+const userSchema = new Schema({
+  firstName: {
+    type: String,
+    required: true,
+  },
+  lastName: String,
+  email: {
+    type: String,
+    unique: true,
+    required: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+}, {
+  timestamps: true
+})
+
 const Todo = model('todo', todoSchema)
+const User = model('user',userSchema)
 
 export {
-  Todo
+  Todo,
+  User
 }

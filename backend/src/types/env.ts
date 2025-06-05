@@ -5,7 +5,8 @@ dotenv.config()
 
 const envSchema = z.object({
   DATABASE_URI: z.string().url(),
-  PORT: z.coerce.number().default(3000)
+  PORT: z.coerce.number().default(3000),
+  JWT_KEY: z.string()
 })
 
 const _env = envSchema.safeParse(process.env)

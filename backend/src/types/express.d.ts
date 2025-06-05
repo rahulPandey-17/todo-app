@@ -1,4 +1,4 @@
-import { TodoInput } from './zodSchema'
+import { LoginInput, TodoInput, UserInput } from './zodSchema'
 
 declare global {
   namespace Express {
@@ -7,7 +7,9 @@ declare global {
       validatedTodo?: TodoInput,
       validatedId?: string,
       validatedTitle?: string,
-      validatedDescription?: string
+      validatedDescription?: string,
+      validatedUserInput?: UserInput,
+      validatedLoginInput?: LoginInput
     }
   }
 }
