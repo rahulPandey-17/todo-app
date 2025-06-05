@@ -18,17 +18,18 @@ const router = express.Router()
 router.post('/create', tokenValidation, todoValidation, async (req: Request, res: Response) => {
   try {
     const { title, description } = req.validatedTodo!
+    const userId = req.decodedJwt!._id
     const session = await mongoose.startSession()
     session.startTransaction()
 
     // creating a todo
     const todo = await Todo.create([{
       title,
-      description
+      description,
+      user: userId
     }], { session })
 
     // pushing the object id into user collection
-    const userId = req.decodedJwt._id as string
     await User.findOneAndUpdate(
       { _id: userId },
       { $push: { todos: todo[0]._id } },
@@ -68,7 +69,7 @@ router.post('/create', tokenValidation, todoValidation, async (req: Request, res
 // retrieve todo's
 router.get('/todos', tokenValidation, async (req: Request, res: Response) => {
   try {
-    const userId = req.decodedJwt._id as string
+    const userId = req.decodedJwt!._id
     const user = await User.findById(userId).populate({
       path: 'todos',
       select: 'title description -_id'
@@ -113,12 +114,13 @@ router.put('/completed/:todoId', idValidation, async (req: Request, res: Respons
 })
 
 // change title
-router.put('/title/:todoId', idValidation, titleValidation, async (req: Request, res: Response) => {
+router.put('/title/:todoId', tokenValidation, idValidation, titleValidation, async (req: Request, res: Response) => {
   try {
     const { todoId } = req.params
-    const { title } = req.body
+    const userId = req.decodedJwt!._id
+    const title = req.validatedTitle
     const updatedTodo = await Todo.findOneAndUpdate(
-      { _id: todoId },
+      { _id: todoId, user: userId },
       { $set: { title } },
       { new: true }
     )
@@ -138,12 +140,13 @@ router.put('/title/:todoId', idValidation, titleValidation, async (req: Request,
 })
 
 // change description
-router.put('/description/:todoId', idValidation, descValidation, async (req: Request, res: Response) => {
+router.put('/description/:todoId', tokenValidation, idValidation, descValidation, async (req: Request, res: Response) => {
   try {
     const { todoId } = req.params
+    const userId = req.decodedJwt!._id
     const { description } = req.body
     const updatedTodo = await Todo.findOneAndUpdate(
-      { _id: todoId },
+      { _id: todoId, user: userId },
       { $set: { description } },
       { new: true }
     )
@@ -163,10 +166,22 @@ router.put('/description/:todoId', idValidation, descValidation, async (req: Req
 })
 
 // delete a todo
-router.delete('/remove/:todoId', idValidation, async (req: Request, res: Response) => {
+router.delete('/remove/:todoId', tokenValidation, idValidation, async (req: Request, res: Response) => {
   try {
     const { todoId } = req.params
-    const deletedTodo = await Todo.findOneAndDelete({ _id: todoId })
+    const userId = req.decodedJwt!._id
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    const deletedTodo = await Todo.findOneAndDelete({ _id: todoId, user: userId }, { session })
+    await User.findOneAndUpdate(
+      { _id: userId },
+      { $pull: { todos: todoId } },
+      { session }
+    )
+
+    await session.commitTransaction()
+    session.endSession()
 
     successResponse(
       res,

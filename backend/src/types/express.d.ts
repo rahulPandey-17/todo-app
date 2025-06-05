@@ -1,4 +1,4 @@
-import Decoded from './jwt'
+import { Decoded } from './jwt'
 import { LoginInput, TodoInput, UserInput } from './zodSchema'
 
 declare global {
