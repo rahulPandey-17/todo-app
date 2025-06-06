@@ -90,11 +90,12 @@ router.get('/todos', tokenValidation, async (req: Request, res: Response) => {
 })
 
 // mark todo as done
-router.put('/completed/:todoId', idValidation, async (req: Request, res: Response) => {
+router.put('/completed/:todoId',tokenValidation, idValidation, async (req: Request, res: Response) => {
   try {
     const { todoId } = req.params
+    const userId = req.decodedJwt!._id
     const updatedTodo = await Todo.findOneAndUpdate(
-      { _id: todoId },
+      { _id: todoId, user: userId },
       { $set: { done: true } },
       { new: true }
     )
